@@ -31,13 +31,13 @@ can use ``__name='tmpl.html'`` to set the name of the template.
 If there are syntax errors ``TemplateError`` will be raised.
 """
 
-import cgi
 import os
 import re
 import sys
 import tokenize
-from cStringIO import StringIO
-from urllib import quote as url_quote
+from html import escape as html_escape
+from io import StringIO
+from urllib.parse import quote as url_quote
 from tempita._looper import looper
 from tempita.compat3 import bytes, basestring_, next, is_unicode, coerce_text
 
@@ -103,7 +103,7 @@ class Template(object):
             delimiters = (self.default_namespace['start_braces'],
                           self.default_namespace['end_braces'])
         else:
-            assert len(delimiters) == 2 and all([isinstance(delimeter, basestring)
+            assert len(delimiters) == 2 and all([isinstance(delimeter, str)
                                                  for delimeter in delimiters])
             self.default_namespace = self.__class__.default_namespace.copy()
             self.default_namespace['start_braces'] = delimiters[0]
@@ -198,7 +198,7 @@ class Template(object):
                 position=None, name=self.name)
         templ = self.get_template(inherit_template, self)
         self_ = TemplateObject(self.name)
-        for name, value in defs.iteritems():
+        for name, value in defs.items():
             setattr(self_, name, value)
         self_.body = body
         ns = ns.copy()
@@ -294,7 +294,7 @@ class Template(object):
         try:
             try:
                 value = eval(code, self.default_namespace, ns)
-            except SyntaxError, e:
+            except SyntaxError as e:
                 raise SyntaxError(
                     'invalid syntax in expression: %s' % code)
             return value
@@ -306,12 +306,12 @@ class Template(object):
             else:
                 arg0 = coerce_text(e)
             e.args = (self._add_line_info(arg0, pos),)
-            raise exc_info[0], e, exc_info[2]
+            raise exc_info[0](e).with_traceback(exc_info[2])
 
     def _exec(self, code, ns, pos):
         __traceback_hide__ = True
         try:
-            exec code in self.default_namespace, ns
+            exec(code, self.default_namespace, ns)
         except:
             exc_info = sys.exc_info()
             e = exc_info[1]
@@ -319,7 +319,7 @@ class Template(object):
                 e.args = (self._add_line_info(e.args[0], pos),)
             else:
                 e.args = (self._add_line_info(None, pos),)
-            raise exc_info[0], e, exc_info[2]
+            raise exc_info[0](e).with_traceback(exc_info[2])
 
     def _repr(self, value, pos):
         __traceback_hide__ = True
@@ -328,7 +328,7 @@ class Template(object):
                 return ''
             if self._unicode:
                 try:
-                    value = unicode(value)
+                    value = str(value)
                 except UnicodeDecodeError:
                     value = bytes(value)
             else:
@@ -341,7 +341,7 @@ class Template(object):
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
-            raise exc_info[0], e, exc_info[2]
+            raise exc_info[0](e).with_traceback(exc_info[2])
         else:
             if self._unicode and isinstance(value, bytes):
                 if not self.default_encoding:
@@ -350,7 +350,7 @@ class Template(object):
                         '(no default_encoding provided)' % value)
                 try:
                     value = value.decode(self.default_encoding)
-                except UnicodeDecodeError, e:
+                except UnicodeDecodeError as e:
                     raise UnicodeDecodeError(
                         e.encoding,
                         e.object,
@@ -387,7 +387,7 @@ def paste_script_template_renderer(content, vars, filename=None):
 class bunch(dict):
 
     def __init__(self, **kw):
-        for name, value in kw.iteritems():
+        for name, value in kw.items():
             setattr(self, name, value)
 
     def __setattr__(self, name, value):
@@ -410,7 +410,7 @@ class bunch(dict):
 
     def __repr__(self):
         items = [
-            (k, v) for k, v in self.iteritems()]
+            (k, v) for k, v in self.items()]
         items.sort()
         return '<%s %s>' % (
             self.__class__.__name__,
@@ -445,10 +445,10 @@ def html_quote(value, force=True):
     if not isinstance(value, basestring_):
         value = coerce_text(value)
     if sys.version >= "3" and isinstance(value, bytes):
-        value = cgi.escape(value.decode('latin1'), 1)
+        value = html_escape(value.decode('latin1'), 1)
         value = value.encode('latin1')
     else:
-        value = cgi.escape(value, 1)
+        value = html_escape(value, 1)
     if sys.version < "3":
         if is_unicode(value):
             value = value.encode('ascii', 'xmlcharrefreplace')
@@ -463,7 +463,7 @@ def url(v):
 
 
 def attr(**kw):
-    kw = list(kw.iteritems())
+    kw = list(kw.items())
     kw.sort()
     parts = []
     for name, value in kw:
@@ -545,7 +545,7 @@ class TemplateDef(object):
         values = {}
         sig_args, var_args, var_kw, defaults = self._func_signature
         extra_kw = {}
-        for name, value in kw.iteritems():
+        for name, value in kw.items():
             if not var_kw and name not in sig_args:
                 raise TypeError(
                     'Unexpected argument %s' % name)
@@ -568,7 +568,7 @@ class TemplateDef(object):
                 raise TypeError(
                     'Extra position arguments: %s'
                     % ', '.join(repr(v) for v in args))
-        for name, value_expr in defaults.iteritems():
+        for name, value_expr in defaults.items():
             if name not in values:
                 values[name] = self._template._eval(
                     value_expr, self._ns, self._pos)
@@ -614,7 +614,7 @@ class _Empty(object):
         return 'Empty'
 
     def __unicode__(self):
-        return u''
+        return ''
 
     def __iter__(self):
         return iter(())

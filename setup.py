@@ -35,6 +35,4 @@ more to learn about it.
       tests_require=['nose'],
       test_suite='nose.collector',
       include_package_data=True,
-      zip_safe=True,
-      use_2to3=True,
-      )
+      zip_safe=True)

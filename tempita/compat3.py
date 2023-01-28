@@ -4,7 +4,7 @@ __all__ = ['b', 'basestring_', 'bytes', 'next', 'is_unicode']
 
 if sys.version < "3":
     b = bytes = str
-    basestring_ = basestring
+    basestring_ = str
 else:
 
     def b(s):
@@ -18,14 +18,14 @@ text = str
 if sys.version < "3":
 
     def next(obj):
-        return obj.next()
+        return obj.__next__()
 else:
     next = next
 
 if sys.version < "3":
 
     def is_unicode(obj):
-        return isinstance(obj, unicode)
+        return isinstance(obj, str)
 else:
 
     def is_unicode(obj):
@@ -39,7 +39,7 @@ def coerce_text(v):
         else:
             attr = '__str__'
         if hasattr(v, attr):
-            return unicode(v)
+            return str(v)
         else:
             return bytes(v)
     return v
