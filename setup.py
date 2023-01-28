@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = '0.5.3'
+version = '0.6.0'
 
 setup(name='Tempita',
       version=version,
