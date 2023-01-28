@@ -484,6 +484,13 @@ Still To Do
 News
 ----
 
+0.6
+^^^
+
+* Support for Python 2 has been removed, Tempita is now Python 3 only.
+
+* Tests rewritten to use ``unittest`` instead of ``nose``
+
 0.5
 ^^^
 
