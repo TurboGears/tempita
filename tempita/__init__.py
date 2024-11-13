@@ -39,7 +39,7 @@ from html import escape as html_escape
 from io import StringIO
 from urllib.parse import quote as url_quote
 from tempita._looper import looper
-from tempita.compat3 import bytes, basestring_, next, is_unicode, coerce_text
+from tempita.compat3 import basestring_, is_unicode, coerce_text
 
 __all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
            'sub_html', 'html', 'bunch']
